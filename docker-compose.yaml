@@ -1,0 +1,28 @@
+version: "3.0"
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: common
+      MYSQL_ROOT_PASSWORD: P@ssw0rd
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - ./mysql/:/docker-entrypoint-initdb.d/
+    ports:
+      - 3306:3306
+  http-server:
+    build: ./dockerfiles/http-server
+    volumes:
+      - ./http-server:/app
+    ports:
+      - 3000:3000
+    depends_on:
+      - db
+  logstash:
+    image: logstash:7.13.3
+    volumes:
+      - "./pipeline/:/usr/share/logstash/pipeline/"
+      - "./mysql-connector-java-8.0.12.jar:/usr/local/mysql-connector-java-8.0.12.jar"
+    depends_on:
+      - db
+      - http-server
